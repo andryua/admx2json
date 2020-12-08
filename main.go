@@ -5,10 +5,12 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/fatih/structs"
+	"regexp"
+
+	//"github.com/fatih/structs"
 	"io/ioutil"
 	"os"
 	"reflect"
-	"regexp"
 	"strings"
 	"unicode"
 )
@@ -16,16 +18,16 @@ import (
 //-------ADMX structs------
 
 type PolicyDefinitions struct {
-	XMLName          xml.Name `xml:"policyDefinitions"`
-	Text             string   `xml:",chardata"`
-	Xsd              string   `xml:"xsd,attr"`
-	Xsi              string   `xml:"xsi,attr"`
-	Revision         string   `xml:"revision,attr"`
-	SchemaVersion    string   `xml:"schemaVersion,attr"`
-	Xmlns            string   `xml:"xmlns,attr"`
-	PolicyNamespaces	PolicyNamespaces `xml:"policyNamespaces"`
-	Resources	Resources `xml:"resources"`
-	SupportedOn	 struct {
+	XMLName          xml.Name         `xml:"policyDefinitions"`
+	Text             string           `xml:",chardata"`
+	Xsd              string           `xml:"xsd,attr"`
+	Xsi              string           `xml:"xsi,attr"`
+	Revision         string           `xml:"revision,attr"`
+	SchemaVersion    string           `xml:"schemaVersion,attr"`
+	Xmlns            string           `xml:"xmlns,attr"`
+	PolicyNamespaces PolicyNamespaces `xml:"policyNamespaces"`
+	Resources        Resources        `xml:"resources"`
+	SupportedOn      struct {
 		Text     string `xml:",chardata"`
 		Products struct {
 			Text    string `xml:",chardata"`
@@ -70,8 +72,8 @@ type PolicyDefinitions struct {
 			} `xml:"definition"`
 		} `xml:"definitions"`
 	} `xml:"supportedOn"`
-	Categories	Categories `xml:"categories"`
-	Policies	Policies `xml:"policies"`
+	Categories Categories `xml:"categories"`
+	Policies   Policies   `xml:"policies"`
 }
 
 type Resources struct {
@@ -170,7 +172,7 @@ type DisabledList struct {
 type Elements struct {
 	Chardata    string        `xml:",chardata"`
 	Boolean     []Boolean     `xml:"boolean"`
-	Textv        []Textv       `xml:"text"`
+	Textv       []Textv       `xml:"text"`
 	Enum        []Enum        `xml:"enum"`
 	List        []List        `xml:"list"`
 	Decimal     []Decimal     `xml:"decimal"`
@@ -178,7 +180,7 @@ type Elements struct {
 	MultiText   []MultiText   `xml:"multiText"`
 }
 
-type Boolean  struct {
+type Boolean struct {
 	Text       string     `xml:",chardata"`
 	ID         string     `xml:"id,attr"`
 	ValueName  string     `xml:"valueName,attr"`
@@ -195,8 +197,8 @@ type FalseValue struct {
 }
 
 type TrueValue struct {
-	Text    string `xml:",chardata"`
-	Decimal	Decimal `xml:"decimal"`
+	Text    string  `xml:",chardata"`
+	Decimal Decimal `xml:"decimal"`
 }
 
 type TrueList struct {
@@ -235,11 +237,11 @@ type ItemVL struct {
 }
 
 type ValueList struct {
-	Text 	string	 `xml:",chardata"`
-	Itemvl	[]ItemVL `xml:"item"`
+	Text   string   `xml:",chardata"`
+	Itemvl []ItemVL `xml:"item"`
 }
 
-type Item	struct {
+type Item struct {
 	Text        string    `xml:",chardata"`
 	DisplayName string    `xml:"displayName,attr"`
 	Value       Value     `xml:"value"`
@@ -249,10 +251,10 @@ type Item	struct {
 	Required    string    `xml:"required"`
 }
 
-type Value	struct {
+type Value struct {
 	Text    string  `xml:",chardata"`
 	Decimal Decimal `xml:"decimal"`
-	StringV  StringV  `xml:"string"`
+	StringV StringV `xml:"string"`
 	Delete  string  `xml:"delete"`
 }
 
@@ -277,7 +279,7 @@ type MultiText struct {
 
 type EnabledValue struct {
 	Text        string      `xml:",chardata"`
-	StringV      string      `xml:"string"`
+	StringV     string      `xml:"string"`
 	LongDecimal LongDecimal `xml:"longDecimal"`
 	Decimal     Decimal     `xml:"decimal"`
 }
@@ -380,7 +382,7 @@ type PresentationTable struct {
 }
 
 type StringTable struct {
-	Text   string   `xml:",chardata"`
+	Text    string    `xml:",chardata"`
 	StringV []StringV `xml:"string"`
 }
 
@@ -400,7 +402,7 @@ type AllPolicies struct {
 	Values      []Values `json:"values"`
 }
 
-type Values	struct {
+type Values struct {
 	Type          string `json:"type,omitempty"`
 	ValueName     string `json:"valueName,omitempty"`
 	DisplayName   string `json:"displayName,omitempty"`
@@ -420,29 +422,93 @@ func clear(v interface{}) {
 	p := reflect.ValueOf(v).Elem()
 	p.Set(reflect.Zero(p.Type()))
 }
+
+func categoryMap(v []Category) map[string]string {
+	fullpath := make(map[string]string)
+	for _, c := range v {
+		if c.ParentCategory.Ref != "" {
+			fullpath[c.Name] = c.ParentCategory.Ref
+		} else {
+			fullpath[c.Name] = c.Name
+		}
+	}
+	return fullpath
+}
+
+var keyPath map[string]string
+
+//var fullPath map[string]string
+/*
+func categoryPath (s string) string {
+	if s == "" {
+		return s
+	} else {
+		return  "/" + keyPath[s] + "/" + categoryPath(keyPath[s])
+	}
+}
+*/
+func categoryPath(key, val string) string {
+	path := key
+	if val == keyPath[val] || key == val {
+		return path
+	}
+
+	path += "/" + val
+	return categoryPath(path, keyPath[val])
+
+}
+
+func reverse(item []string) []string {
+	newItem := make([]string, 0, len(item))
+	for i := len(item) - 1; i >= 0; i-- {
+		newItem = append(newItem, item[i])
+	}
+	return newItem
+}
+
 func main() {
 	var n PolicyDefinitions
 	var m PolicyDefinitionResources
-	var r AllPolicies
 	var it Values
 	lang := make(map[string]string)
 	res := make([]AllPolicies, len(n.Policies.Policy))
-//	var admx []AllPolicies
+	var admx []AllPolicies
 	root := "/home/DN301081KAI/go/src/admx/gpo"
-	fnames, err := ioutil.ReadDir(root)
+	enUs := "/home/DN301081KAI/go/src/admx/gpo/en-US"
+	fnamesX, err := ioutil.ReadDir(root)
+	fnamesL, err := ioutil.ReadDir(enUs)
+	fnames := make(map[string]string)
+	for _, fnameX := range fnamesX {
+		fx := strings.Split(fnameX.Name(), ".")[0]
+		for _, fnameL := range fnamesL {
+			fl := strings.Split(fnameL.Name(), ".")[0]
+			if strings.ToLower(fx) == strings.ToLower(fl) {
+				fnames[fx+".admx"] = fl + ".adml"
+			}
+		}
+	}
 	if err != nil {
 		fmt.Println(err)
 	}
-	for _, fname := range fnames {
-		if strings.Contains(fname.Name(), "admx") != true {
-			continue
-		}
-		xmlFileX, err := os.Open("gpo/"+fname.Name())
+	//for _, fname := range fnames {
+	//	if strings.Contains(fname.Name(), "admx") != true {
+	//		continue
+	//	}
+	//	xmlFileX, err := os.Open("gpo/"+fname.Name())
+	//	if err != nil {
+	//		fmt.Println(err)
+	//	}
+	//	fl := strings.Split(fname.Name(), ".")[0]
+	//	xmlFileL, err := os.Open("gpo/en-US/" + fl + ".adml")
+	//	if err != nil {
+	//		fmt.Println(err)
+	//	}
+	for key, value := range fnames {
+		xmlFileX, err := os.Open("gpo/" + key)
 		if err != nil {
 			fmt.Println(err)
 		}
-		fl := strings.Split(fname.Name(), ".")[0]
-		xmlFileL, err := os.Open("gpo/en-US/" + fl + ".adml")
+		xmlFileL, err := os.Open("gpo/en-US/" + value)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -463,15 +529,16 @@ func main() {
 
 		err = xml.Unmarshal(byteValueX, &n)
 		if err != nil {
-			fmt.Println("error: ", fname.Name(), ": ", err)
+			fmt.Println("error: ", key, ": ", err)
 		}
 
 		err = xml.Unmarshal(byteValueL, &m)
 		if err != nil {
-			fmt.Println("error: ", fname.Name(), ": ", err)
+			fmt.Println("error: ", value, ": ", err)
 		}
 
 		var rgx, _ = regexp.Compile(`..string.(\S+).`)
+		var rgxS = regexp.MustCompile(`(SUPPORT\S+)`)
 		if xmlFileL != nil {
 			for _, str := range m.Resources.StringTable.StringV {
 				for _, data := range str {
@@ -480,39 +547,90 @@ func main() {
 			}
 		}
 		clear(&res)
+		catname := make(map[string]string)
+		for _, category := range n.Categories.Category {
+			catname[category.Name] = lang[rgx.FindStringSubmatch(category.DisplayName)[1]]
+			if catname[category.Name] != "" {
+				//fmt.Println("Category name: ", catname,"%%%%% Parent category: " ,category.ParentCategory.Ref)
+			} else {
+				//fmt.Println("Category name: ", category.DisplayName, "%%%%% Parent category: " ,category.ParentCategory.Ref)
+			}
+		}
+		keyPath = categoryMap(n.Categories.Category)
+		//fullPath = keyPath
+		tmp := ""
+		tmpArray := []string{}
+		for key, value := range keyPath {
+			tmp = categoryPath(key, value)
+			tmpArray = strings.Split(tmp, "/")
+			for i := 0; i < len(tmpArray); i++ {
+				if strings.Contains(tmpArray[i], ":") {
+					tmpArray[i] = strings.Split(tmpArray[i], ":")[1]
+				}
+				if catname[tmpArray[i]] != "" {
+					tmpArray[i] = catname[tmpArray[i]]
+				}
+			}
+			keyPath[key] = strings.Join(reverse(tmpArray), "/")
+		}
 		//rgx.FindStringSubmatch(item.DisplayName)[1]
 		for _, policy := range n.Policies.Policy {
-
+			var r AllPolicies
 			/*
-			it.Type
-			it.ValueName
-			it.DisplayName
-			it.Key
-			it.Required
-			it.MaxValue
-			it.MinValue
-			it.Value
-			it.DisabledValue
-			it.EnabledValue
-			it.TrueValue
-			it.FalseValue
-			it.ValuePrefix
+				it.Type
+				it.ValueName
+				it.DisplayName
+				it.Key
+				it.Required
+				it.MaxValue
+				it.MinValue
+				it.Value
+				it.DisabledValue
+				it.EnabledValue
+				it.TrueValue
+				it.FalseValue
+				it.ValuePrefix
 			*/
-
 			r.Name = policy.Name
-			if lang[policy.SupportedOn.Ref] != "" {
-				r.SupportedOn = lang[policy.SupportedOn.Ref]
+			if len(rgxS.FindAllString(policy.SupportedOn.Ref, -1)) > 0 {
+				r.SupportedOn = lang[rgxS.FindAllString(policy.SupportedOn.Ref, -1)[0]]
 			} else {
-				r.SupportedOn = policy.SupportedOn.Ref
+				//fmt.Println(fname.Name(), " : ",rgxS.FindAllString(policy.SupportedOn.Ref,-1), " - ", policy.SupportedOn.Ref)
+				if policy.SupportedOn.Ref == "" {
+					r.SupportedOn = "All Windows versions"
+				} else {
+					r.SupportedOn = policy.SupportedOn.Ref
+				}
 			}
 			r.Class = policy.Class
-			if lang[policy.ParentCategory.Ref] != "" {
-				r.Category = lang[policy.ParentCategory.Ref]
-			} else {
-				r.Category = policy.ParentCategory.Ref
+			/*
+				if lang[policy.ParentCategory.Ref] != "" {
+					r.Category = lang[policy.ParentCategory.Ref]
+				} else {
+					r.Category = policy.ParentCategory.Ref
+				}
+			*/
+			tmp := policy.ParentCategory.Ref
+			if strings.Contains(policy.ParentCategory.Ref, ":") {
+				tmp = strings.Split(policy.ParentCategory.Ref, ":")[1]
 			}
-			r.DisplayName = lang[rgx.FindStringSubmatch(policy.DisplayName)[1]]
-			r.ExplainText = lang[rgx.FindStringSubmatch(policy.ExplainText)[1]]
+			if keyPath[tmp] != "" {
+				r.Category = keyPath[tmp]
+			} else {
+				r.Category = tmp
+			}
+			if lang[rgx.FindStringSubmatch(policy.DisplayName)[1]] != "" {
+				r.DisplayName = lang[rgx.FindStringSubmatch(policy.DisplayName)[1]]
+			} else {
+				r.DisplayName = policy.DisplayName
+			}
+			if lang[rgx.FindStringSubmatch(policy.ExplainText)[1]] != "" {
+				r.ExplainText = lang[rgx.FindStringSubmatch(policy.ExplainText)[1]]
+			} else {
+				r.ExplainText = policy.ExplainText
+			}
+
+			//----values-----
 			if policy.ValueName != "" && policy.EnabledValue == (EnabledValue{}) {
 				it.Key = policy.Key
 				it.ValueName = policy.ValueName
@@ -659,7 +777,7 @@ func main() {
 					for _, item := range policy.Elements.List {
 						it.Key = item.Key
 						it.Type = "REG_SZ"
-						it.ValueName = "{manual " + item.ValuePrefix + "}"
+						it.ValueName = "manual " + item.ValuePrefix + ""
 						if (Values{}) != it {
 							r.Values = append(r.Values, it)
 						}
@@ -682,11 +800,17 @@ func main() {
 			res = append(res, r)
 			clear(&r)
 		}
-	/*	for _,pol := range res {
+		for _, pol := range res {
 			admx = append(admx, pol)
 		}
-*/
+
 	}
+	/*
+		for key, value := range keyPath {
+			fmt.Println(key + " = ", value)
+		}
+	*/
+	//fmt.Println(categoryPath(n.Categories.Category))
 	jsonres, err := json.Marshal(res)
 	if err != nil {
 		fmt.Println(err)
@@ -695,4 +819,3 @@ func main() {
 	ioutil.WriteFile(fil, jsonres, 0777)
 	//fmt.Println(string(jsonres))
 }
-

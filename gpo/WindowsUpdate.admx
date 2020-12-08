@@ -389,6 +389,18 @@
         <text id="CorpWUStatusURL_Name" valueName="WUStatusServer" required="true" />
         <text id="CorpWUContentHost_Name" valueName="UpdateServiceUrlAlternate" required="false" />
         <boolean id="CorpWUFillEmptyContentUrls" valueName="FillEmptyContentUrls" required="false" />
+        <enum id="SetProxyBehaviorForUpdateDetection" valueName="SetProxyBehaviorForUpdateDetection" required="true">
+            <item displayName="$(string.OnlyUseSystemProxyForUpdateDetection)">
+              <value>
+                <decimal value="0" />
+              </value>
+            </item>
+            <item displayName="$(string.AllowUserProxyAsFallbackForUpdateDetection)">
+              <value>
+                <decimal value="1" />
+              </value>
+            </item>
+          </enum>
       </elements>
     </policy>
     <policy name="DetectionFrequency_Title" class="Machine" displayName="$(string.DetectionFrequency_Title)" explainText="$(string.DetectionFrequency_Help)" presentation="$(presentation.DetectionFrequency_Title)" key="Software\Policies\Microsoft\Windows\WindowsUpdate\AU" valueName="DetectionFrequencyEnabled">
