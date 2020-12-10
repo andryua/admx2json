@@ -429,7 +429,7 @@ func categoryMap(v []Category) map[string]string {
 		if c.ParentCategory.Ref != "" {
 			fullpath[c.Name] = c.ParentCategory.Ref
 		} else {
-			fullpath[c.Name] = c.Name
+			fullpath[c.Name] = ""
 		}
 	}
 	return fullpath
@@ -437,33 +437,34 @@ func categoryMap(v []Category) map[string]string {
 
 var keyPath map[string]string
 
-//var fullPath map[string]string
-/*
-func categoryPath (s string) string {
-	if s == "" {
-		return s
-	} else {
-		return  "/" + keyPath[s] + "/" + categoryPath(keyPath[s])
-	}
-}
-*/
 func categoryPath(key, val string) string {
 	path := key
-	if val == keyPath[val] || key == val {
+	if strings.EqualFold(val, keyPath[val]) || strings.EqualFold(key, val) || len(val) <= 1 {
 		return path
 	}
-
-	path += "/" + val
+	path += "|" + val
 	return categoryPath(path, keyPath[val])
-
 }
 
 func reverse(item []string) []string {
-	newItem := make([]string, 0, len(item))
-	for i := len(item) - 1; i >= 0; i-- {
-		newItem = append(newItem, item[i])
+	newItem := make([]string, len(item))
+	for i, j := 0, len(item)-1; i <= j; i, j = i+1, j-1 {
+		newItem[i], newItem[j] = item[j], item[i]
 	}
 	return newItem
+}
+
+func removeDuplicateValues(strSlice []string) []string {
+	keys := make(map[string]bool)
+	list := []string{}
+
+	for _, entry := range strSlice {
+		if _, value := keys[strings.ToLower(entry)]; !value {
+			keys[strings.ToLower(entry)] = true
+			list = append(list, entry)
+		}
+	}
+	return list
 }
 
 func main() {
@@ -490,19 +491,7 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	//for _, fname := range fnames {
-	//	if strings.Contains(fname.Name(), "admx") != true {
-	//		continue
-	//	}
-	//	xmlFileX, err := os.Open("gpo/"+fname.Name())
-	//	if err != nil {
-	//		fmt.Println(err)
-	//	}
-	//	fl := strings.Split(fname.Name(), ".")[0]
-	//	xmlFileL, err := os.Open("gpo/en-US/" + fl + ".adml")
-	//	if err != nil {
-	//		fmt.Println(err)
-	//	}
+
 	for key, value := range fnames {
 		xmlFileX, err := os.Open("gpo/" + key)
 		if err != nil {
@@ -550,29 +539,30 @@ func main() {
 		catname := make(map[string]string)
 		for _, category := range n.Categories.Category {
 			catname[category.Name] = lang[rgx.FindStringSubmatch(category.DisplayName)[1]]
-			if catname[category.Name] != "" {
-				//fmt.Println("Category name: ", catname,"%%%%% Parent category: " ,category.ParentCategory.Ref)
-			} else {
-				//fmt.Println("Category name: ", category.DisplayName, "%%%%% Parent category: " ,category.ParentCategory.Ref)
-			}
 		}
 		keyPath = categoryMap(n.Categories.Category)
-		//fullPath = keyPath
+
 		tmp := ""
 		tmpArray := []string{}
+
 		for key, value := range keyPath {
 			tmp = categoryPath(key, value)
-			tmpArray = strings.Split(tmp, "/")
-			for i := 0; i < len(tmpArray); i++ {
-				if strings.Contains(tmpArray[i], ":") {
-					tmpArray[i] = strings.Split(tmpArray[i], ":")[1]
+			if strings.Contains(tmp, "|") {
+				tmpArray = strings.Split(tmp, "|")
+				for i := 0; i < len(tmpArray); i++ {
+					if strings.Contains(tmpArray[i], ":") {
+						tmpArray[i] = strings.Split(tmpArray[i], ":")[1]
+					}
+					if catname[tmpArray[i]] != "" {
+						tmpArray[i] = catname[tmpArray[i]]
+					}
 				}
-				if catname[tmpArray[i]] != "" {
-					tmpArray[i] = catname[tmpArray[i]]
-				}
+				keyPath[key] = strings.Join(reverse(tmpArray), "|")
+			} else {
+				keyPath[key] = tmp
 			}
-			keyPath[key] = strings.Join(reverse(tmpArray), "/")
 		}
+
 		//rgx.FindStringSubmatch(item.DisplayName)[1]
 		for _, policy := range n.Policies.Policy {
 			var r AllPolicies
@@ -803,6 +793,7 @@ func main() {
 		for _, pol := range res {
 			admx = append(admx, pol)
 		}
+		clear(&keyPath)
 
 	}
 	/*
