@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strings"
 	"unicode"
 )
@@ -385,7 +386,24 @@ type StringV []struct {
 	ID   string `xml:"id,attr"`
 }
 
-func ParseFiles() (PolicyDefinitions, map[string]string) {
+var dataCat = map[string]string{}
+
+func categoryMap(v []Category) map[string]string {
+	for _, c := range v {
+		if _, ok := dataCat[c.Name]; ok {
+			continue
+		}
+		if c.ParentCategory.Ref != "" {
+			dataCat[c.Name] = c.ParentCategory.Ref
+		} else {
+			dataCat[c.Name] = c.Name
+		}
+	}
+	return dataCat
+}
+
+func ParseFiles() ([]PolicyDefinitions, map[string]string, map[string]string, map[string]string) {
+	var data []PolicyDefinitions
 	var n PolicyDefinitions
 	var m PolicyDefinitionResources
 	lang := make(map[string]string)
@@ -394,6 +412,7 @@ func ParseFiles() (PolicyDefinitions, map[string]string) {
 	fnamesX, err := ioutil.ReadDir(root)
 	fnamesL, err := ioutil.ReadDir(enUs)
 	fnames := make(map[string]string)
+	var catalogname = map[string]string{}
 	for _, fnameX := range fnamesX {
 		fx := strings.Split(fnameX.Name(), ".")[0]
 		for _, fnameL := range fnamesL {
@@ -406,6 +425,7 @@ func ParseFiles() (PolicyDefinitions, map[string]string) {
 	if err != nil {
 		fmt.Println(err)
 	}
+	var rgx, _ = regexp.Compile(`..string.(\S+).`)
 
 	for key, value := range fnames {
 		xmlFileX, err := os.Open("gpo/" + key)
@@ -444,10 +464,24 @@ func ParseFiles() (PolicyDefinitions, map[string]string) {
 		if xmlFileL != nil {
 			for _, str := range m.Resources.StringTable.StringV {
 				for _, data := range str {
+					if _, ok := lang[data.ID]; ok {
+						continue
+					}
 					lang[data.ID] = data.Text
 				}
 			}
 		}
+		if xmlFileX != nil {
+			for _, category := range n.Categories.Category {
+				if _, ok := catalogname[category.Name]; ok {
+					continue
+				}
+				catalogname[category.Name] = lang[rgx.FindStringSubmatch(category.DisplayName)[1]]
+			}
+		}
+		dataCat = categoryMap(n.Categories.Category)
+		data = append(data, n)
+		clear(&n)
 	}
-	return n, lang
+	return data, lang, dataCat, catalogname
 }
