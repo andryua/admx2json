@@ -4,15 +4,15 @@ import (
 	"strings"
 )
 
-var keyPath map[string]string
+var keyPath = make(map[string]string)
 
-func categoryPath(key, val string) string {
+func catPath(key, value string) string {
 	path := key
-	if strings.EqualFold(val, keyPath[val]) || strings.EqualFold(key, val) || val == "" {
+	if value == "" || strings.EqualFold(value, keyPath[value]) {
 		return path
 	}
-	path += "|" + val
-	return categoryPath(path, keyPath[val])
+	path += "|" + value
+	return catPath(path, keyPath[value])
 }
 
 func reverse(item []string) []string {
@@ -24,28 +24,23 @@ func reverse(item []string) []string {
 }
 
 func CategoriesPath(keyPath, catname map[string]string) map[string]string {
+	cpKey := make(map[string]string)
 	for key, value := range keyPath {
-		keyPath[key] = categoryPath(key, value)
+		cpKey[key] = strings.Join(reverse(strings.Split(catPath(key, value), "|")), "|")
+		//cpKey[key] = categoryPath(key, value)
 	}
 
-	for key, value := range keyPath {
-		tmpArray := []string{}
+	for key, value := range cpKey {
+		//fmt.Println(key,":",value)
 		if strings.Contains(value, "|") {
-			tmpArray = strings.Split(value, "|")
+			tmpArray := strings.Split(value, "|")
 			for i := 0; i < len(tmpArray); i++ {
-				if strings.Contains(tmpArray[i], ":") {
-					tmpArray[i] = strings.Split(tmpArray[i], ":")[1]
-				}
-				if catname[tmpArray[i]] != "" {
+				if _, ok := catname[tmpArray[i]]; ok {
 					tmpArray[i] = catname[tmpArray[i]]
 				}
 			}
-			keyPath[key] = strings.Join(reverse(tmpArray), "|")
-		} else {
-			if value != "" {
-				keyPath[key] = catname[value]
-			}
+			cpKey[key] = strings.Join(tmpArray, "|")
 		}
 	}
-	return keyPath
+	return cpKey
 }

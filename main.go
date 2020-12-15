@@ -4,6 +4,7 @@ import (
 	"admx/helpers"
 	"encoding/json"
 	"io/ioutil"
+	"strings"
 
 	//"encoding/json"
 	"fmt"
@@ -11,12 +12,17 @@ import (
 )
 
 func main() {
-	//data, lang, dataCat, cataloguesname := helpers.ParseFiles()
-	data, lang, dataCat, cataloguesname := helpers.ParseFiles()
-	//fmt.Printf("%v",dataCat)
-	catpath := helpers.CategoriesPath(dataCat, cataloguesname)
-	//fmt.Printf("%v", catpath)
-	res := helpers.PoliciesParse(data, lang, catpath)
+	dataPolicies, lang, dataCat, cataloguesname := helpers.ParseFiles()
+	cpDataCat := make(map[string]string)
+	for key, value := range dataCat {
+		if strings.Contains(value, ":") {
+			value = strings.Split(value, ":")[1]
+		}
+		cpDataCat[key] = value
+		//fmt.Print(key,",",value,"\n")
+	}
+	catpath := helpers.CategoriesPath(cpDataCat, cataloguesname)
+	res := helpers.PoliciesParse(dataPolicies, lang, catpath)
 
 	jsonres, err := json.Marshal(res)
 	if err != nil {

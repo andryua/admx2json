@@ -396,16 +396,17 @@ func categoryMap(v []Category) map[string]string {
 		if c.ParentCategory.Ref != "" {
 			dataCat[c.Name] = c.ParentCategory.Ref
 		} else {
-			dataCat[c.Name] = c.Name
+			dataCat[c.Name] = ""
 		}
 	}
 	return dataCat
 }
 
-func ParseFiles() ([]PolicyDefinitions, map[string]string, map[string]string, map[string]string) {
+func ParseFiles() ([]Policy, map[string]string, map[string]string, map[string]string) {
 	var data []PolicyDefinitions
 	var n PolicyDefinitions
 	var m PolicyDefinitionResources
+	var dataPolicies []Policy
 	lang := make(map[string]string)
 	root := "/home/DN301081KAI/go/src/admx/gpo"
 	enUs := "/home/DN301081KAI/go/src/admx/gpo/en-US"
@@ -480,8 +481,9 @@ func ParseFiles() ([]PolicyDefinitions, map[string]string, map[string]string, ma
 			}
 		}
 		dataCat = categoryMap(n.Categories.Category)
+		dataPolicies = append(dataPolicies, n.Policies.Policy...)
 		data = append(data, n)
 		clear(&n)
 	}
-	return data, lang, dataCat, catalogname
+	return dataPolicies, lang, dataCat, catalogname
 }
