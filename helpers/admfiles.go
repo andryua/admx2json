@@ -386,7 +386,7 @@ type StringV []struct {
 	ID   string `xml:"id,attr"`
 }
 
-var dataCat = map[string]string{}
+var dataCat = make(map[string]string)
 
 func categoryMap(v []Category) map[string]string {
 	for _, c := range v {
@@ -408,12 +408,12 @@ func ParseFiles() ([]Policy, map[string]string, map[string]string, map[string]st
 	var m PolicyDefinitionResources
 	var dataPolicies []Policy
 	lang := make(map[string]string)
-	root := "/home/DN301081KAI/go/src/admx/gpo"
-	enUs := "/home/DN301081KAI/go/src/admx/gpo/en-US"
+	root := "gpo"
+	enUs := "gpo/en-US"
 	fnamesX, err := ioutil.ReadDir(root)
 	fnamesL, err := ioutil.ReadDir(enUs)
 	fnames := make(map[string]string)
-	var catalogname = map[string]string{}
+	var catalogname = make(map[string]string)
 	for _, fnameX := range fnamesX {
 		fx := strings.Split(fnameX.Name(), ".")[0]
 		for _, fnameL := range fnamesL {
@@ -477,10 +477,21 @@ func ParseFiles() ([]Policy, map[string]string, map[string]string, map[string]st
 				if _, ok := catalogname[category.Name]; ok {
 					continue
 				}
-				catalogname[category.Name] = lang[rgx.FindStringSubmatch(category.DisplayName)[1]]
+				if strings.Contains(lang[rgx.FindStringSubmatch(category.DisplayName)[1]], "/") {
+					tmps := lang[rgx.FindStringSubmatch(category.DisplayName)[1]]
+					catalogname[category.Name] = strings.ReplaceAll(tmps, "/", "-")
+				} else {
+					catalogname[category.Name] = lang[rgx.FindStringSubmatch(category.DisplayName)[1]]
+				}
 			}
 		}
 		dataCat = categoryMap(n.Categories.Category)
+		for key, value := range dataCat {
+			if strings.Contains(dataCat[key], ":") {
+				value = strings.Split(dataCat[key], ":")[1]
+			}
+			dataCat[key] = value
+		}
 		dataPolicies = append(dataPolicies, n.Policies.Policy...)
 		data = append(data, n)
 		clear(&n)

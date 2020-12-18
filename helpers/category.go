@@ -4,15 +4,15 @@ import (
 	"strings"
 )
 
-var keyPath = make(map[string]string)
+var keyPath map[string]string
 
-func catPath(key, value string) string {
-	path := key
-	if value == "" || strings.EqualFold(value, keyPath[value]) {
+func catPath(k1, v1 string) string {
+	path := k1
+	if v1 == "" || strings.EqualFold(v1, keyPath[v1]) {
 		return path
 	}
-	path += "|" + value
-	return catPath(path, keyPath[value])
+	path += "|" + v1
+	return catPath(path, keyPath[v1])
 }
 
 func reverse(item []string) []string {
@@ -23,15 +23,13 @@ func reverse(item []string) []string {
 	return newItem
 }
 
-func CategoriesPath(keyPath, catname map[string]string) map[string]string {
+func CategoriesPath(inputKeyPath, catname map[string]string) map[string]string {
+	keyPath = inputKeyPath
 	cpKey := make(map[string]string)
 	for key, value := range keyPath {
 		cpKey[key] = strings.Join(reverse(strings.Split(catPath(key, value), "|")), "|")
-		//cpKey[key] = categoryPath(key, value)
 	}
-
 	for key, value := range cpKey {
-		//fmt.Println(key,":",value)
 		if strings.Contains(value, "|") {
 			tmpArray := strings.Split(value, "|")
 			for i := 0; i < len(tmpArray); i++ {

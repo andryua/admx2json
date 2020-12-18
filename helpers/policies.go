@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"github.com/fatih/structs"
+	//"github.com/fatih/structs"
 	"reflect"
 	"regexp"
 	"strings"
@@ -132,28 +132,29 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 							it.Type = "REG_DWORD"
 							it.Value = itm.Value.Decimal.Value
 						}
-						if !structs.IsZero(itm.ValueList) {
-							for _, i := range itm.ValueList.Itemvl {
-								it.ValueName = i.ValueName
-								it.Key = i.Key
-								if i.Value.StringV != nil {
-									it.Type = "REG_SZ"
-								}
-								if i.Value.Decimal.Value != "" {
-									it.Type = "REG_DWORD"
-									it.Value = i.Value.Decimal.Value
-									it.Key = i.Value.Decimal.Key
-									it.ValueName = i.Value.Decimal.ValueName
-									it.Required = i.Value.Decimal.Required
-								}
-								if i.Value.Delete != "" {
-									it.Type = ""
-									it.Value = "DELETE"
-								}
-								it.Key = i.Key
-								it.ValueName = i.ValueName
+						//if !structs.IsZero(itm.ValueList) {
+						//if itm.ValueList != {} {
+						for _, i := range itm.ValueList.Itemvl {
+							it.ValueName = i.ValueName
+							it.Key = i.Key
+							if i.Value.StringV != nil {
+								it.Type = "REG_SZ"
 							}
+							if i.Value.Decimal.Value != "" {
+								it.Type = "REG_DWORD"
+								it.Value = i.Value.Decimal.Value
+								it.Key = i.Value.Decimal.Key
+								it.ValueName = i.Value.Decimal.ValueName
+								it.Required = i.Value.Decimal.Required
+							}
+							if i.Value.Delete != "" {
+								it.Type = ""
+								it.Value = "DELETE"
+							}
+							it.Key = i.Key
+							it.ValueName = i.ValueName
 						}
+						//}
 						if (Values{}) != it {
 							r.Values = append(r.Values, it)
 						}

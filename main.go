@@ -4,30 +4,25 @@ import (
 	"admx/helpers"
 	"encoding/json"
 	"io/ioutil"
-	"strings"
-
 	//"encoding/json"
 	"fmt"
 	//"io/ioutil"
 )
 
 func main() {
-	dataPolicies, lang, dataCat, cataloguesname := helpers.ParseFiles()
-	cpDataCat := make(map[string]string)
-	for key, value := range dataCat {
-		if strings.Contains(value, ":") {
-			value = strings.Split(value, ":")[1]
-		}
-		cpDataCat[key] = value
-		//fmt.Print(key,",",value,"\n")
-	}
-	catpath := helpers.CategoriesPath(cpDataCat, cataloguesname)
-	res := helpers.PoliciesParse(dataPolicies, lang, catpath)
+	dataPolicies, lang, dataCat, cataloguesName := helpers.ParseFiles()
+	//fmt.Printf("%v\n",dataCat)
+	cataloguePath := helpers.CategoriesPath(dataCat, cataloguesName)
+	res := helpers.PoliciesParse(dataPolicies, lang, cataloguePath)
 
-	jsonres, err := json.Marshal(res)
+	jsonRes, err := json.Marshal(res)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fil := "gpo.json"
-	ioutil.WriteFile(fil, jsonres, 0777)
+	file1 := "gpo.json"
+	file2 := "gpoTree.json"
+	jsonTree := helpers.Treegen(res)
+	//helpers.Treegen(res)
+	ioutil.WriteFile(file1, jsonRes, 0777)
+	ioutil.WriteFile(file2, []byte(jsonTree), 0777)
 }
