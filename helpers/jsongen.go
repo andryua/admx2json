@@ -88,7 +88,7 @@ func Treegen(dataGPO []AllPolicies) string {
 
 	sl1 := 0
 	for i := 0; i < len(dr); i++ {
-		fmt.Println(dr[i])
+		//fmt.Println(dr[i])
 		sl := strings.Split(dr[i], "/")
 		if i+1 == len(dr) {
 			sl1 = len(sl)
@@ -123,7 +123,7 @@ func Treegen(dataGPO []AllPolicies) string {
 				if strings.EqualFold(splt1, pol.Category) { //&& x == pol.ID {
 					//fmt.Println(dr[i])
 					web = append(web, tmp+"	{")
-					web = append(web, tmp+"\"id\": "+"\""+strconv.Itoa(pol.ID)+"\",")
+					web = append(web, tmp+"\"id\": "+strconv.Itoa(pol.ID)+",")
 					dn, _ := json.Marshal(pol.DisplayName)
 					web = append(web, tmp+"\"title\": "+string(dn)+",")
 					sup, _ := json.Marshal(pol.SupportedOn)
