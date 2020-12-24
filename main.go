@@ -20,9 +20,8 @@ func main() {
 		fmt.Println(err)
 	}
 	file1 := "gpo.json"
-	file2 := "gpoTree.json"
-	jsonTree := helpers.Treegen(res)
-	//helpers.Treegen(res)
 	ioutil.WriteFile(file1, jsonRes, 0777)
+	jsonTree := helpers.Treegen(res)
+	file2 := "gpoTree.json"
 	ioutil.WriteFile(file2, []byte(jsonTree), 0777)
 }

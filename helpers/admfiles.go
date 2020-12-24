@@ -390,6 +390,8 @@ var dataCat = make(map[string]string)
 
 func categoryMap(v []Category) map[string]string {
 	for _, c := range v {
+		c.Name = strings.TrimSpace(c.Name)
+		c.ParentCategory.Ref = strings.TrimSpace(c.ParentCategory.Ref)
 		if _, ok := dataCat[c.Name]; ok {
 			continue
 		}
@@ -474,6 +476,7 @@ func ParseFiles() ([]Policy, map[string]string, map[string]string, map[string]st
 		}
 		if xmlFileX != nil {
 			for _, category := range n.Categories.Category {
+				category.Name = strings.TrimSpace(category.Name)
 				if _, ok := catalogname[category.Name]; ok {
 					continue
 				}
@@ -496,5 +499,8 @@ func ParseFiles() ([]Policy, map[string]string, map[string]string, map[string]st
 		data = append(data, n)
 		clear(&n)
 	}
+	//for key, value := range catalogname {
+	//	fmt.Println(key,":",value)
+	//}
 	return dataPolicies, lang, dataCat, catalogname
 }

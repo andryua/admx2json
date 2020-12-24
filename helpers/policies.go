@@ -9,6 +9,7 @@ import (
 
 //--------Structs for result JSON---------------
 type AllPolicies struct {
+	ID          int      `json:"id"`
 	Name        string   `json:"name"`
 	Class       string   `json:"class"`
 	DisplayName string   `json:"displayName"`
@@ -44,6 +45,7 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 	var rgx, _ = regexp.Compile(`..string.(\S+).`)
 	var rgxS = regexp.MustCompile(`(SUPPORT\S+)`)
 	//rgx.FindStringSubmatch(item.DisplayName)[1]
+	k := -1
 	for _, policy := range data {
 		var r = AllPolicies{}
 		var it = Values{}
@@ -65,6 +67,8 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 		if policy.Name == "" {
 			continue
 		}
+		k++
+		r.ID = k
 		r.Name = policy.Name
 
 		if len(rgxS.FindAllString(policy.SupportedOn.Ref, -1)) > 0 {
@@ -82,11 +86,13 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 		if strings.Contains(policy.ParentCategory.Ref, ":") {
 			tmp = strings.Split(policy.ParentCategory.Ref, ":")[1]
 		}
-		if keyPath[tmp] != "" {
-			r.Category = keyPath[tmp]
-		} else {
-			r.Category = tmp
-		}
+		tmp = strings.TrimSpace(tmp)
+		//fmt.Println(tmp,":",keyPath[tmp])
+		//if keyPath[tmp] != "" {
+		r.Category = keyPath[tmp]
+		//} else {
+		//	r.Category = tmp
+		//}
 		if lang[rgx.FindStringSubmatch(policy.DisplayName)[1]] != "" {
 			r.DisplayName = lang[rgx.FindStringSubmatch(policy.DisplayName)[1]]
 		} else {

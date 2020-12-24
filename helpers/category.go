@@ -27,17 +27,25 @@ func CategoriesPath(inputKeyPath, catname map[string]string) map[string]string {
 	keyPath = inputKeyPath
 	cpKey := make(map[string]string)
 	for key, value := range keyPath {
+		key = strings.TrimSpace(key)
+		value = strings.TrimSpace(value)
 		cpKey[key] = strings.Join(reverse(strings.Split(catPath(key, value), "|")), "|")
 	}
 	for key, value := range cpKey {
 		if strings.Contains(value, "|") {
 			tmpArray := strings.Split(value, "|")
 			for i := 0; i < len(tmpArray); i++ {
+				tmpArray[i] = strings.TrimSpace(tmpArray[i])
 				if _, ok := catname[tmpArray[i]]; ok {
 					tmpArray[i] = catname[tmpArray[i]]
 				}
+				if strings.Contains(tmpArray[i], "/") {
+					strings.ReplaceAll(tmpArray[i], "/", "|")
+				}
 			}
-			cpKey[key] = strings.Join(tmpArray, "|")
+			cpKey[key] = strings.Join(tmpArray, "/")
+		} else {
+			cpKey[key] = catname[key]
 		}
 	}
 	return cpKey
