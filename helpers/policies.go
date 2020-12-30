@@ -116,6 +116,30 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 			}
 			it = Values{}
 		}
+
+		if policy.EnabledList.Item != nil {
+			for _, en := range policy.EnabledList.Item {
+				it.Key = en.Key
+				it.Value = en.Value.Decimal.Value
+				it.ValueName = en.ValueName
+				it.Type = "REG_DWORD"
+				if (Values{}) != it {
+					r.Values = append(r.Values, it)
+				}
+			}
+		}
+		if policy.DisabledList.Item != nil {
+			for _, di := range policy.DisabledList.Item {
+				it.Key = di.Key
+				it.Value = di.Value.Decimal.Value
+				it.ValueName = di.ValueName
+				it.Type = "REG_DWORD"
+				if (Values{}) != it {
+					r.Values = append(r.Values, it)
+				}
+			}
+		}
+
 		if policy.Elements.Chardata != "" {
 			if policy.Elements.Enum != nil {
 				for _, item := range policy.Elements.Enum {

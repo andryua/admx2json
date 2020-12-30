@@ -8,4 +8,5 @@
 out
 gen
 gpo.json
+gpoTree.json
 .run
