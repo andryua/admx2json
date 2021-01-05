@@ -70,16 +70,12 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 		k++
 		r.ID = k
 		r.Name = policy.Name
-
-		if len(rgxS.FindAllString(policy.SupportedOn.Ref, -1)) > 0 {
-			r.SupportedOn = lang[rgxS.FindAllString(policy.SupportedOn.Ref, -1)[0]]
+		if len(rgxS.FindAllString(policy.SupportedOn.Ref, -1)) == 0 {
+			r.SupportedOn = lang[rgxS.FindAllString("SUPPORTED_Windows7ToVistaAndWindows10", -1)[0]]
 		} else {
-			if policy.SupportedOn.Ref == "" {
-				r.SupportedOn = "All Windows versions"
-			} else {
-				r.SupportedOn = policy.SupportedOn.Ref
-			}
+			r.SupportedOn = lang[rgxS.FindAllString(policy.SupportedOn.Ref, -1)[0]]
 		}
+
 		r.Class = policy.Class
 
 		tmp := policy.ParentCategory.Ref
@@ -119,7 +115,11 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 
 		if policy.EnabledList.Item != nil {
 			for _, en := range policy.EnabledList.Item {
-				it.Key = en.Key
+				if en.Key == "" {
+					it.Key = policy.Key
+				} else {
+					it.Key = en.Key
+				}
 				it.Value = en.Value.Decimal.Value
 				it.ValueName = en.ValueName
 				it.Type = "REG_DWORD"
@@ -130,7 +130,12 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 		}
 		if policy.DisabledList.Item != nil {
 			for _, di := range policy.DisabledList.Item {
-				it.Key = di.Key
+				if di.Key == "" {
+					it.Key = policy.Key
+				} else {
+					it.Key = di.Key
+				}
+
 				it.Value = di.Value.Decimal.Value
 				it.ValueName = di.ValueName
 				it.Type = "REG_DWORD"
@@ -144,7 +149,11 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 			if policy.Elements.Enum != nil {
 				for _, item := range policy.Elements.Enum {
 					for _, itm := range item.Item {
+						//if itm.Key == "" {
+						//	it.Key = itm.Key
+						//} else {
 						it.Key = policy.Key
+						//}
 						if itm.ValueName != "" {
 							it.ValueName = itm.ValueName
 						} else if item.ValueName != "" {
@@ -166,14 +175,22 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 						//if itm.ValueList != {} {
 						for _, i := range itm.ValueList.Itemvl {
 							it.ValueName = i.ValueName
-							it.Key = i.Key
+							if i.Key == "" {
+								it.Key = policy.Key
+							} else {
+								it.Key = i.Key
+							}
 							if i.Value.StringV != nil {
 								it.Type = "REG_SZ"
 							}
 							if i.Value.Decimal.Value != "" {
 								it.Type = "REG_DWORD"
 								it.Value = i.Value.Decimal.Value
-								it.Key = i.Value.Decimal.Key
+								//fmt.Println(i.Value.Decimal.Key)
+								//if i.Value.Decimal.Key == "" {
+								//} else {
+								//	it.Key = i.Value.Decimal.Key
+								//}
 								it.ValueName = i.Value.Decimal.ValueName
 								it.Required = i.Value.Decimal.Required
 							}
@@ -181,15 +198,21 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 								it.Type = ""
 								it.Value = "DELETE"
 							}
-							it.Key = i.Key
+							//it.Key = i.Key
 							it.ValueName = i.ValueName
 						}
+						//it.Key = policy.Key
 						//}
 						if (Values{}) != it {
 							r.Values = append(r.Values, it)
 						}
 					}
 					for _, itm := range item.Textv {
+						if itm.Key == "" {
+							it.Key = policy.Key
+						} else {
+							it.Key = itm.Key
+						}
 						it.Key = policy.Key
 						it.ValueName = itm.ValueName
 						it.Required = itm.Required
@@ -203,7 +226,11 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 			}
 			if policy.Elements.Textv != nil {
 				for _, item := range policy.Elements.Textv {
-					it.Key = item.Key
+					if item.Key == "" {
+						it.Key = policy.Key
+					} else {
+						it.Key = item.Key
+					}
 					it.ValueName = item.ValueName
 					it.Required = item.Required
 					it.Type = "REG_SZ"
@@ -244,7 +271,11 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 			}
 			if policy.Elements.Decimal != nil {
 				for _, item := range policy.Elements.Decimal {
-					it.Key = policy.Key
+					if item.Key == "" {
+						it.Key = policy.Key
+					} else {
+						it.Key = item.Key
+					}
 					it.ValueName = item.ValueName
 					it.Required = item.Required
 					it.Type = "REG_DWORD"
@@ -274,7 +305,11 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 			}
 			if policy.Elements.List != nil {
 				for _, item := range policy.Elements.List {
-					it.Key = item.Key
+					if item.Key == "" {
+						it.Key = policy.Key
+					} else {
+						it.Key = item.Key
+					}
 					it.Type = "REG_SZ"
 					it.ValueName = "manual " + item.ValuePrefix + ""
 					if (Values{}) != it {
