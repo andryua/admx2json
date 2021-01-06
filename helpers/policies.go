@@ -70,10 +70,26 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 		k++
 		r.ID = k
 		r.Name = policy.Name
-		if len(rgxS.FindAllString(policy.SupportedOn.Ref, -1)) == 0 {
+		/*
+			if len(rgxS.FindAllString(policy.SupportedOn.Ref, -1)) != 0 {
+				if lang[rgxS.FindAllString(policy.SupportedOn.Ref, -1)[0]] == "" {
+					fmt.Println(policy.SupportedOn.Ref," = NONE = ", rgxS.FindAllString(policy.SupportedOn.Ref, -1)[0])
+				} else {
+					fmt.Println(policy.SupportedOn.Ref," = ", lang[rgxS.FindAllString(policy.SupportedOn.Ref, -1)[0]])
+				}
+			} else {
+				fmt.Println(policy.SupportedOn.Ref," = NONE" )
+			}
+
+		*/
+		if len(rgxS.FindAllString(policy.SupportedOn.Ref, -1)) == 0 || !strings.Contains(strings.ToLower(policy.SupportedOn.Ref), ":") {
 			r.SupportedOn = lang[rgxS.FindAllString("SUPPORTED_Windows7ToVistaAndWindows10", -1)[0]]
 		} else {
-			r.SupportedOn = lang[rgxS.FindAllString(policy.SupportedOn.Ref, -1)[0]]
+			if lang[rgxS.FindAllString(policy.SupportedOn.Ref, -1)[0]] == "" {
+				r.SupportedOn = lang[rgxS.FindAllString("SUPPORTED_Windows7ToVistaAndWindows10", -1)[0]]
+			} else {
+				r.SupportedOn = lang[rgxS.FindAllString(policy.SupportedOn.Ref, -1)[0]]
+			}
 		}
 
 		r.Class = policy.Class
