@@ -10,11 +10,10 @@ import (
 )
 
 func main() {
-	dataPolicies, lang, dataCat, cataloguesName := helpers.ParseFiles()
+	dataPolicies, lang, dataCat, cataloguesName, present := helpers.ParseFiles()
 	//fmt.Printf("%v\n",dataCat)
 	cataloguePath := helpers.CategoriesPath(dataCat, cataloguesName)
-	res := helpers.PoliciesParse(dataPolicies, lang, cataloguePath)
-
+	res := helpers.PoliciesParse(dataPolicies, lang, cataloguePath, present)
 	jsonRes, err := json.Marshal(res)
 	if err != nil {
 		fmt.Println(err)
@@ -24,4 +23,10 @@ func main() {
 	jsonTree := helpers.Treegen(res)
 	file2 := "gpoTree.json"
 	ioutil.WriteFile(file2, []byte(jsonTree), 0777)
+	/*
+		for key, value := range present {
+			fmt.Println(key, " = ", value)
+			fmt.Println("*************************************************************")
+		}
+	*/
 }

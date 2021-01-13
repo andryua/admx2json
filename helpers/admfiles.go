@@ -324,56 +324,58 @@ type PolicyDefinitionResources struct {
 	Resources     Resources `xml:"resources"`
 }
 type PresentationTable struct {
-	Text         string `xml:",chardata"`
-	Presentation []struct {
-		Chardata string `xml:",chardata"`
-		ID       string `xml:"id,attr"`
-		CheckBox []struct {
-			Text           string `xml:",chardata"`
-			RefId          string `xml:"refId,attr"`
-			DefaultChecked string `xml:"defaultChecked,attr"`
-		} `xml:"checkBox"`
-		ComboBox []struct {
-			Text       string   `xml:",chardata"`
-			RefId      string   `xml:"refId,attr"`
-			NoSort     string   `xml:"noSort,attr"`
-			Label      string   `xml:"label"`
-			Suggestion []string `xml:"suggestion"`
-		} `xml:"comboBox"`
-		DropdownList []struct {
-			Text        string `xml:",chardata"`
-			RefId       string `xml:"refId,attr"`
-			DefaultItem string `xml:"defaultItem,attr"`
-			NoSort      string `xml:"noSort,attr"`
-		} `xml:"dropdownList"`
-		Text    []string `xml:"text"`
-		ListBox struct {
-			Text  string `xml:",chardata"`
-			RefId string `xml:"refId,attr"`
-		} `xml:"listBox"`
-		DecimalTextBox struct {
-			Text         string `xml:",chardata"`
-			RefId        string `xml:"refId,attr"`
-			DefaultValue string `xml:"defaultValue,attr"`
-			SpinStep     string `xml:"spinStep,attr"`
-		} `xml:"decimalTextBox"`
-		LongDecimalTextBox struct {
-			Text         string `xml:",chardata"`
-			RefId        string `xml:"refId,attr"`
-			DefaultValue string `xml:"defaultValue,attr"`
-			SpinStep     string `xml:"spinStep,attr"`
-		} `xml:"longDecimalTextBox"`
-		TextBox struct {
-			Text         string `xml:",chardata"`
-			RefId        string `xml:"refId,attr"`
-			Label        string `xml:"label"`
-			DefaultValue string `xml:"defaultValue"`
-		} `xml:"textBox"`
-		MultiTextBox struct {
-			Text  string `xml:",chardata"`
-			RefId string `xml:"refId,attr"`
-		} `xml:"multiTextBox"`
-	} `xml:"presentation"`
+	Text         string         `xml:",chardata"`
+	Presentation []Presentation `xml:"presentation"`
+}
+
+type Presentation struct {
+	Chardata string `xml:",chardata"`
+	ID       string `xml:"id,attr"`
+	CheckBox []struct {
+		Text           string `xml:",chardata"`
+		RefId          string `xml:"refId,attr"`
+		DefaultChecked string `xml:"defaultChecked,attr"`
+	} `xml:"checkBox"`
+	ComboBox []struct {
+		Text       string   `xml:",chardata"`
+		RefId      string   `xml:"refId,attr"`
+		NoSort     string   `xml:"noSort,attr"`
+		Label      string   `xml:"label"`
+		Suggestion []string `xml:"suggestion"`
+	} `xml:"comboBox"`
+	DropdownList []struct {
+		Text        string `xml:",chardata"`
+		RefId       string `xml:"refId,attr"`
+		DefaultItem string `xml:"defaultItem,attr"`
+		NoSort      string `xml:"noSort,attr"`
+	} `xml:"dropdownList"`
+	Text    []string `xml:"text"`
+	ListBox []struct {
+		Text  string `xml:",chardata"`
+		RefId string `xml:"refId,attr"`
+	} `xml:"listBox"`
+	DecimalTextBox []struct {
+		Text         string `xml:",chardata"`
+		RefId        string `xml:"refId,attr"`
+		DefaultValue string `xml:"defaultValue,attr"`
+		SpinStep     string `xml:"spinStep,attr"`
+	} `xml:"decimalTextBox"`
+	LongDecimalTextBox []struct {
+		Text         string `xml:",chardata"`
+		RefId        string `xml:"refId,attr"`
+		DefaultValue string `xml:"defaultValue,attr"`
+		SpinStep     string `xml:"spinStep,attr"`
+	} `xml:"longDecimalTextBox"`
+	TextBox []struct {
+		Text         string `xml:",chardata"`
+		RefId        string `xml:"refId,attr"`
+		Label        string `xml:"label"`
+		DefaultValue string `xml:"defaultValue"`
+	} `xml:"textBox"`
+	MultiTextBox []struct {
+		Text  string `xml:",chardata"`
+		RefId string `xml:"refId,attr"`
+	} `xml:"multiTextBox"`
 }
 
 type StringTable struct {
@@ -404,12 +406,13 @@ func categoryMap(v []Category) map[string]string {
 	return dataCat
 }
 
-func ParseFiles() ([]Policy, map[string]string, map[string]string, map[string]string) {
+func ParseFiles() ([]Policy, map[string]string, map[string]string, map[string]string, map[string]Presentation) {
 	var data []PolicyDefinitions
 	var n PolicyDefinitions
 	var m PolicyDefinitionResources
 	var dataPolicies []Policy
 	lang := make(map[string]string)
+	langPr := make(map[string]Presentation)
 	root := "gpo"
 	enUs := "gpo/en-US"
 	fnamesX, err := ioutil.ReadDir(root)
@@ -473,7 +476,15 @@ func ParseFiles() ([]Policy, map[string]string, map[string]string, map[string]st
 					lang[data.ID] = data.Text
 				}
 			}
+
+			for _, strp := range m.Resources.PresentationTable.Presentation {
+				if _, ok := langPr[strp.ID]; ok {
+					continue
+				}
+				langPr[strp.ID] = strp
+			}
 		}
+
 		if xmlFileX != nil {
 			for _, category := range n.Categories.Category {
 				category.Name = strings.TrimSpace(category.Name)
@@ -502,5 +513,5 @@ func ParseFiles() ([]Policy, map[string]string, map[string]string, map[string]st
 	//for key, value := range catalogname {
 	//	fmt.Println(key,":",value)
 	//}
-	return dataPolicies, lang, dataCat, catalogname
+	return dataPolicies, lang, dataCat, catalogname, langPr
 }

@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	//"fmt"
 	//"github.com/fatih/structs"
 	"reflect"
 	"regexp"
@@ -9,14 +10,65 @@ import (
 
 //--------Structs for result JSON---------------
 type AllPolicies struct {
-	ID          int      `json:"id"`
-	Name        string   `json:"name"`
-	Class       string   `json:"class"`
-	DisplayName string   `json:"displayName"`
-	ExplainText string   `json:"explainText"`
-	Category    string   `json:"category"`
-	SupportedOn string   `json:"supportedOn"`
-	Values      []Values `json:"values"`
+	ID           int                 `json:"id"`
+	Name         string              `json:"name"`
+	Class        string              `json:"class"`
+	DisplayName  string              `json:"displayName"`
+	Presentation []Presentation_json `json:"presentation,omitempty"`
+	ExplainText  string              `json:"explainText"`
+	Category     string              `json:"category"`
+	SupportedOn  string              `json:"supportedOn"`
+	Values       []Values            `json:"values"`
+}
+
+type Presentation_json struct {
+	Chardata string `json:",chardata,omitempty"`
+	ID       string `json:"id,omitempty"`
+	CheckBox []struct {
+		Text           string `json:",chardata,omitempty"`
+		RefId          string `json:"refId,omitempty"`
+		DefaultChecked string `json:"defaultChecked,omitempty"`
+	} `json:"checkBox,omitempty"`
+	ComboBox []struct {
+		Text       string   `json:",chardata,omitempty"`
+		RefId      string   `json:"refId,omitempty"`
+		NoSort     string   `json:"noSort,omitempty"`
+		Label      string   `json:"label,omitempty"`
+		Suggestion []string `json:"suggestion,omitempty"`
+	} `json:"comboBox,omitempty"`
+	DropdownList []struct {
+		Text        string `json:",chardata,omitempty"`
+		RefId       string `json:"refId,omitempty"`
+		DefaultItem string `json:"defaultItem,omitempty"`
+		NoSort      string `json:"noSort,omitempty"`
+	} `json:"dropdownList,omitempty"`
+	Text    []string `json:"text,omitempty"`
+	ListBox []struct {
+		Text  string `json:",chardata,omitempty"`
+		RefId string `json:"refId,omitempty"`
+	} `json:"listBox,omitempty"`
+	DecimalTextBox []struct {
+		Text         string `json:",chardata,omitempty"`
+		RefId        string `json:"refId,omitempty"`
+		DefaultValue string `json:"defaultValue,omitempty"`
+		SpinStep     string `json:"spinStep,omitempty"`
+	} `json:"decimalTextBox,omitempty"`
+	LongDecimalTextBox []struct {
+		Text         string `json:",chardata,omitempty"`
+		RefId        string `json:"refId,omitempty"`
+		DefaultValue string `json:"defaultValue,omitempty"`
+		SpinStep     string `json:"spinStep,omitempty"`
+	} `json:"longDecimalTextBox,omitempty"`
+	TextBox []struct {
+		Text         string `json:",chardata,omitempty"`
+		RefId        string `json:"refId,omitempty"`
+		Label        string `json:"label,omitempty"`
+		DefaultValue string `json:"defaultValue,omitempty"`
+	} `json:"textBox,omitempty"`
+	MultiTextBox []struct {
+		Text  string `json:",chardata,omitempty"`
+		RefId string `json:"refId,omitempty"`
+	} `json:"multiTextBox,omitempty"`
 }
 
 type Values struct {
@@ -28,7 +80,7 @@ type Values struct {
 	MaxValue      string `json:"maxValue,omitempty"`
 	MinValue      string `json:"minValue,omitempty"`
 	Value         string `json:"value,omitempty"`
-	DisabledValue string `json:"disabledValue,omitempty""`
+	DisabledValue string `json:"disabledValue,omitempty"`
 	EnabledValue  string `json:"enabledValue,omitempty"`
 	TrueValue     string `json:"trueValue,omitempty"`
 	FalseValue    string `json:"falseValue,omitempty"`
@@ -40,10 +92,11 @@ func clear(v interface{}) {
 	p.Set(reflect.Zero(p.Type()))
 }
 
-func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]string) []AllPolicies {
+func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]string, present map[string]Presentation) []AllPolicies {
 	var res []AllPolicies
 	var rgx, _ = regexp.Compile(`..string.(\S+).`)
-	var rgxS = regexp.MustCompile(`(SUPPORT\S+)`)
+	var rgp, _ = regexp.Compile(`..presentation.(\S+).`)
+	//var rgxS = regexp.MustCompile(`(SUPPORT\S+)`)
 	//rgx.FindStringSubmatch(item.DisplayName)[1]
 	k := -1
 	for _, policy := range data {
@@ -80,16 +133,10 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 			} else {
 				fmt.Println(policy.SupportedOn.Ref," = NONE" )
 			}
-
 		*/
-		if len(rgxS.FindAllString(policy.SupportedOn.Ref, -1)) == 0 || !strings.Contains(strings.ToLower(policy.SupportedOn.Ref), ":") {
-			r.SupportedOn = lang[rgxS.FindAllString("SUPPORTED_Windows7ToVistaAndWindows10", -1)[0]]
-		} else {
-			if lang[rgxS.FindAllString(policy.SupportedOn.Ref, -1)[0]] == "" {
-				r.SupportedOn = lang[rgxS.FindAllString("SUPPORTED_Windows7ToVistaAndWindows10", -1)[0]]
-			} else {
-				r.SupportedOn = lang[rgxS.FindAllString(policy.SupportedOn.Ref, -1)[0]]
-			}
+		if policy.Presentation != "" && rgp.FindStringSubmatch(policy.Presentation)[1] != "" {
+			//fmt.Println(rgp.FindStringSubmatch(policy.Presentation)[1])
+			r.Presentation = append(r.Presentation, Presentation_json(present[rgp.FindStringSubmatch(policy.Presentation)[1]]))
 		}
 
 		r.Class = policy.Class
