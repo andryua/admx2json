@@ -96,7 +96,7 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 	var res []AllPolicies
 	var rgx, _ = regexp.Compile(`..string.(\S+).`)
 	var rgp, _ = regexp.Compile(`..presentation.(\S+).`)
-	//var rgxS = regexp.MustCompile(`(SUPPORT\S+)`)
+	var rgxS = regexp.MustCompile(`(SUPPORT\S+)`)
 	//rgx.FindStringSubmatch(item.DisplayName)[1]
 	k := -1
 	for _, policy := range data {
@@ -123,17 +123,17 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 		k++
 		r.ID = k
 		r.Name = policy.Name
-		/*
-			if len(rgxS.FindAllString(policy.SupportedOn.Ref, -1)) != 0 {
-				if lang[rgxS.FindAllString(policy.SupportedOn.Ref, -1)[0]] == "" {
-					fmt.Println(policy.SupportedOn.Ref," = NONE = ", rgxS.FindAllString(policy.SupportedOn.Ref, -1)[0])
-				} else {
-					fmt.Println(policy.SupportedOn.Ref," = ", lang[rgxS.FindAllString(policy.SupportedOn.Ref, -1)[0]])
-				}
+		//fmt.Println(policy.Class,",",policy.Name,",",policy.DisplayName)
+		if rgxS.FindStringSubmatch(policy.SupportedOn.Ref) != nil { // || lang[rgxS.FindStringSubmatch(policy.SupportedOn.Ref)[1]] == ""{
+			if lang[rgxS.FindStringSubmatch(policy.SupportedOn.Ref)[1]] == "" {
+				r.SupportedOn = policy.SupportedOn.Ref
 			} else {
-				fmt.Println(policy.SupportedOn.Ref," = NONE" )
+				r.SupportedOn = lang[rgxS.FindStringSubmatch(policy.SupportedOn.Ref)[1]]
 			}
-		*/
+		} else {
+			r.SupportedOn = "All Windows version supported"
+		}
+
 		if policy.Presentation != "" && rgp.FindStringSubmatch(policy.Presentation)[1] != "" {
 			//fmt.Println(rgp.FindStringSubmatch(policy.Presentation)[1])
 			r.Presentation = append(r.Presentation, Presentation_json(present[rgp.FindStringSubmatch(policy.Presentation)[1]]))
