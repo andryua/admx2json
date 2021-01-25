@@ -15,10 +15,11 @@ type AllPolicies struct {
 	Class        string              `json:"class"`
 	DisplayName  string              `json:"displayName"`
 	Presentation []Presentation_json `json:"presentation,omitempty"`
-	ExplainText  string              `json:"explainText"`
-	Category     string              `json:"category"`
-	SupportedOn  string              `json:"supportedOn"`
-	Values       []Values            `json:"values"`
+	//View 		 []string 			 `json:"view,omitempty"`
+	ExplainText string   `json:"explainText"`
+	Category    string   `json:"category"`
+	SupportedOn string   `json:"supportedOn"`
+	Values      []Values `json:"values"`
 }
 
 type Presentation_json struct {
@@ -137,6 +138,7 @@ func PoliciesParse(data []Policy, lang map[string]string, keyPath map[string]str
 		if policy.Presentation != "" && rgp.FindStringSubmatch(policy.Presentation)[1] != "" {
 			//fmt.Println(rgp.FindStringSubmatch(policy.Presentation)[1])
 			r.Presentation = append(r.Presentation, Presentation_json(present[rgp.FindStringSubmatch(policy.Presentation)[1]]))
+			//r.View = append(r.View, createJS((Presentation_json(present[rgp.FindStringSubmatch(policy.Presentation)[1]]))))
 		}
 
 		r.Class = policy.Class
