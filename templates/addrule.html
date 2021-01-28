@@ -1,0 +1,48 @@
+{{define "addrule"}}
+<form action="/addrule" id="addrule" method="POST">
+    <div class="form-group">
+        <label for="polname">Ім'я правила:</label>
+        <input type="text" class="form-control" id="polname" name="polname" placeholder="Ім'я правила" required>
+    </div>
+    <div class="form-group">
+        <label for="scope">Рівень приналежності:</label>
+        <select id="scope" name="scope" class="form-control" required>
+            <option value="User" selected >Users</option>
+            <option value="Machine">Computer</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="polpath">Шлях в дереві правил:</label>
+        <input type="text" class="form-control" id="polpath" name="polpath" placeholder="Windows Components\Internet Explorer\..." required>
+    </div>
+    <div class="form-group">
+        <label for="regpath">Шлях в реєстрі:</label>
+        <input type="text" class="form-control" id="regpath" name="regpath" placeholder="SOFTWARE\Policies\..." required>
+    </div>
+    <div class="form-group">
+        <label for="regvalue">Значення в реєстрі:</label>
+        <p><label for="regvalue"><small>якщо значень декілька - записуйте їх через "," БЕЗ пропусків</small></label></p>
+        <input type="text" class="form-control" id="regvalue" name="regvalue" placeholder="Значення" required>
+    </div>
+    <div class="form-group">
+        <label for="type">Тип:</label>
+        <select id="type" name="type" class="form-control" required>
+        <option value="DWORD">REG_DWORD (бінарне, вводити ЛИШЕ числа в десятковій формі!)</option>
+        <option value="SZ" selected>REG_STRING (звичайна стрічка)</option>
+        <option value="MULTISZ">REG_MULTI_SZ (багаторядкова стріка)</option>
+        <option value="EXSZ">REG_EXPAND_SZ (випадаюча стріка)</option>
+        <option value="DELETE">DELETE</option>
+        <option value="DELETEALLVALUES">DELETEALLVALUES</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="support">Підтримка версій Windows:</label>
+        <textarea class="form-control" id="support" name="support" rows="3" placeholder="Windows 7 and above" required></textarea>
+    </div>
+    <div class="form-group">
+        <label for="description">Опис:</label>
+        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Опис правила" required></textarea>
+    </div>
+    <div id="resadd"></div>
+</form>
+{{end}}

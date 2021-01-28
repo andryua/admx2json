@@ -1,0 +1,118 @@
+{{define "gptree"}}
+
+<html>
+
+<head>
+    <title>
+        Tree of Group policy list
+    </title>
+    <meta name="description" content="Fancytree Playground Sample 1">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <script src="/assets/popper.js-1.12.9/dist/umd/popper.min.js"></script>
+    <link rel="stylesheet" href="/assets/fontawesome/css/all.css">
+    <script src="/assets/jquery/jquery-3.3.1.min.js"></script>
+    <script src="/assets/gpo_.js"></script>
+    <script src="/assets/fancytree-master/lib/jquery.js"></script>
+    <script src="/assets/fancytree-master/lib/jquery-ui.custom.js"></script>
+    <!--<link href="/assets/fancytree-master/src/skin-xp/ui.fancytree.css" rel="stylesheet">-->
+    <link href="/assets/fancytree-master/src/skin-lion/ui.fancytree.css" rel="stylesheet">
+    <script src="/assets/fancytree-master/src/jquery.fancytree.js"></script>
+    <script src="/assets/jquery/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+    <script src="/assets/fancytree-master/src/jquery.fancytree.filter.js"></script>
+    <!-- Start_Exclude: This block is not part of the sample code -->
+    <link href="/assets/fancytree-master/lib/prettify.css" rel="stylesheet">
+    <script src="/assets/fancytree-master/lib/prettify.js"></script>
+
+    <!--<link href="/assets//bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <script src="/assets/bootstrap/js/bootstrap.min.js"></script>-->
+    <link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css">
+    <script src="/assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/assets/list.js"></script>
+    <link rel="stylesheet" href="/assets/btnup.css">
+
+</head>
+
+<body>
+    <table>
+        <tr>
+        <td>
+            <div class="input-group ">
+                <input type="text" class="form-control fas fa-search" id="search" placeholder="&#xF002;" name="search" autocomplete="off">
+                <div class="input-group-append">
+                    <button type="button" id="btnResetSearch" class="btn btn-dark my-2 my-sm-0"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div id="tree" style="overflow-y:auto;max-height:75vh;wight:50vw;">
+            </div>
+            <div id="temp"></div>
+        </td>
+        <td style="text-align:left;vertical-align:top;">
+            <div class="span10">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title" id="tit">Ім'я правила: </h4>
+                        <script>
+                            document.getElementById("tit").style.display = "none";
+                        </script>
+                    </div>
+                    <div class="panel-body">
+                        <span class="text-info" id="echoName"></span>
+                        <br>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <br>
+                        <h4 class="panel-title" id="tit3">Значення: </h4>
+                        <script>
+                            document.getElementById("tit3").style.display = "none";
+                        </script>
+                    </div>
+                    <div class="panel-body">
+                        <span class="text-secondary" id="echoValues"></span>
+                        <br>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <br>
+                        <h4 class="panel-title" id="tit1">Підтримка версій Windows: </h4>
+                        <script>
+                            document.getElementById("tit1").style.display = "none";
+                        </script>
+                    </div>
+                    <div class="panel-body">
+                        <span class="text-error" id="echoSupport" style="color:red;"></span>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <br>
+                        <h4 class="panel-title" id="tit2">Опис: </h4>
+                        <script>
+                            document.getElementById("tit2").style.display = "none";
+                        </script>
+                    </div>
+                    <div class="panel-body">
+                        <span class="text-success" id="echoInfo"></span>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="span10"><span id="desttree"></span></div>
+            <input type="hidden" id="admtmpid" name="admtmpid" value="test">
+            <br>
+            <br>
+
+
+
+        </td>
+        </tr>
+        </table>
+</body>
+
+</html>
+
+{{end}}
