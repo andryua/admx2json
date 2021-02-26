@@ -1,0 +1,258 @@
+{{define "new"}}
+
+<html>
+
+<head>
+    <title>
+        Add new rules of {{.Name}} Group policy
+    </title>
+    <meta name="description" content="Fancytree Playground Sample 1">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <script src="/assets/popper.js-1.12.9/dist/umd/popper.min.js"></script>
+    <link rel="stylesheet" href="/assets/fontawesome/css/all.css">
+    <script src="/assets/jquery/jquery-3.3.1.min.js"></script>
+    <script src="/assets/gpo.js"></script>
+    <script src="/assets/fancytree-master/lib/jquery.js"></script>
+    <script src="/assets/fancytree-master/lib/jquery-ui.custom.js"></script>
+    <!--<link href="/assets/fancytree-master/src/skin-xp/ui.fancytree.css" rel="stylesheet">-->
+    <link href="/assets/fancytree-master/src/skin-lion/ui.fancytree.css" rel="stylesheet">
+    <script src="/assets/fancytree-master/src/jquery.fancytree.js"></script>
+    <script src="/assets/jquery/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+    <script src="/assets/fancytree-master/src/jquery.fancytree.filter.js"></script>
+    <!-- Start_Exclude: This block is not part of the sample code -->
+    <link href="/assets/fancytree-master/lib/prettify.css" rel="stylesheet">
+    <script src="/assets/fancytree-master/lib/prettify.js"></script>
+
+    <!--<link href="/assets//bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <script src="/assets/bootstrap/js/bootstrap.min.js"></script>-->
+    <link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css">
+    <script src="/assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/assets/list.js"></script>
+    <link rel="stylesheet" href="/assets/btnup.css">
+
+</head>
+
+<body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-expand-sm navbar-dark navbar-fixed-top bg-dark">
+        <a class="navbar-brand" href="#"><img src="/assets/gp.png" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><b>{{.Name}}</b></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item form-inline">
+
+
+                </li>
+                {{if (eq .UnChangeable 0)}}
+                <li class="nav-item">
+                    <a class="nav-link" href="/main">головна</a>
+                </li>
+                {{else}}
+                <li class="nav-item">
+                    <a class="nav-link" href="/defaultgp">головна</a>
+                </li>
+                {{end}}
+                <li class="nav-item">
+                    <a class="nav-link" href="/edit?id={{.Id}}&name={{.Name}}">повернутися</a>
+                </li>
+            </ul>
+
+        </div>
+    </nav>
+
+    <table>
+        <tr>
+            <div class="continer-fluid">
+                <input type="hidden" id="unchange" value="{{.UnChangeable}}" />
+
+
+                <!-- <div class="input-append input-prepend">
+                        <span class="add-on btn-info">{{.Name}}</span>{{if (eq .UnChangeable 0)}}
+                        <a class="btn" href="/main" role="button">Main</a> {{else}}
+                        <a class="btn" href="/defaultgp" role="button">Main</a> {{end}}
+                        <input class="btn btn-success" type="button" id="btn" value="Add" onclick="funcAdd('{{.Id}}','{{.Name}}')">
+                        <span class="add-on"><i class="icon-search"></i></span>
+                        <input type="text" class="span2 input-medium" id="search" placeholder="Search for..." name="search" autocomplete="off">
+                        <button type="button" id="btnResetSearch" class="btn">&times;</button>
+                        <a class="btn btn-warning" href="/edit?id={{.Id}}&name={{.Name}}" role="button">Back</a>
+                    </div> -->
+
+            </div>
+
+
+            <td>
+                <div class="input-group ">
+                    <input type="text" class="form-control fas fa-search" id="search" placeholder="&#xF002;" name="search" autocomplete="off">
+                    <div class="input-group-append">
+                        <button type="button" id="btnResetSearch" class="btn btn-dark my-2 my-sm-0"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                <div id="tree" style="overflow-y:auto;max-height:75vh;wight:50vw;">
+                </div>
+                <form id="addGPO" method="POST" action="/save2?id={{.Id}}&name={{.Name}}">
+                    <button class="btn btn-secondary btn-block" type="button" id="btn" value="Add" onclick="funcAdd()">додати правило/a</button>
+                    <div id="temp"></div>
+            </td>
+            <td style="text-align:left;vertical-align:top;">
+                <div class="span10">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title" id="tit">Ім'я об'єкту групової політики: </h4>
+                            <script>
+                                document.getElementById("tit").style.display = "none";
+                            </script>
+                        </div>
+                        <div class="panel-body">
+                            <span class="text-info" id="echoName"></span>
+                            <br>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <br>
+                            <h4 class="panel-title" id="tit3">Значення в реєстрі: </h4>
+                            <script>
+                                document.getElementById("tit3").style.display = "none";
+                            </script>
+                        </div>
+                        <div class="panel-body">
+                            <span class="text-secondary" id="echoRegInfo"></span>
+                            <br>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <br>
+                            <h4 class="panel-title" id="tit1">Підтримка версій Windows: </h4>
+                            <script>
+                                document.getElementById("tit1").style.display = "none";
+                            </script>
+                        </div>
+                        <div class="panel-body">
+                            <span class="text-error" id="echoSupport" style="color:red;"></span>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <br>
+                            <h4 class="panel-title" id="tit2">Опис: </h4>
+                            <script>
+                                document.getElementById("tit2").style.display = "none";
+                            </script>
+                        </div>
+                        <div class="panel-body">
+                            <span class="text-success" id="echoInfo"></span>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="span10"><span id="desttree"></span></div>
+                <input type="hidden" id="urll" value="/save2?id={{.Id}}&name={{.Name}}">
+                <input type="hidden" id="admtmpid" name="admtmpid" value="test">
+                <br>
+                <br>
+
+
+                </form>
+            </td>
+        </tr>
+        <tr>
+
+            <td>
+                <p id="temp"></p>
+                <button onclick="topFunction()" id="myBtn" title="Go to top">Вгору</button>
+                <script>
+                    // When the user scrolls down 20px from the top of the document, show the button
+                    window.onscroll = function() {
+                        scrollFunction()
+                    };
+
+                    function scrollFunction() {
+                        if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                            document.getElementById("myBtn").style.display = "block";
+                        } else {
+                            document.getElementById("myBtn").style.display = "none";
+                        }
+                    }
+
+                    // When the user clicks on the button, scroll to the top of the document
+                    function topFunction() {
+                        document.body.scrollTop = 0; // For Safari
+                        document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+                    }
+                </script>
+            </td>
+        </tr>
+    </table>
+
+    <div id="meModal" class="modal fade " tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Додати правило в базу</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                </div>
+                <div class="modal-body text-left">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="reset" class="btn btn-warning" data-toggle="modal" data-target="#Modal" data-whatever="@mdo">Закрити і оновити базу</buton>
+                            <!--<button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>-->
+                    <button type="button" class="btn btn-info" onClick="fClear()">Очистити форму</button>
+                    <input class="btn btn-success" type="button" value="Зберегти" onClick="funcAddRule()">
+                    <script>
+                        function funcAddRule() {
+                            console.log($("#addrule").serialize());
+                            $.post(
+                                "/addrule",
+                                $("#addrule").serialize(),
+                                function(data) {
+                                    if (data == "saved") {
+                                        document.getElementById("reset").disabled = false;
+                                        $("#resadd").hide().html("<div class=\"alert alert-success\" role=\"alert\">Зміни збережено!</div>").fadeIn('slow').delay(5000).hide(1);
+                                    }
+                                    if (data == "empty") {
+                                        document.getElementById("reset").disabled = true;
+                                        $("#resadd").hide().html("<div class=\"alert alert-warning\" role=\"alert\">Зміни не збережено! Заповніть усі поля!</div>").fadeIn('slow').delay(5000).hide(1);
+                                    }
+                                    if (data == "gemini") {
+                                        document.getElementById("reset").disabled = true;
+                                        $("#resadd").hide().html("<div class=\"alert alert-danger\" role=\"alert\">Зміни не збережено! Таке правило вже є в базі!</div>").fadeIn('slow').delay(5000).hide(1);
+                                    }
+                                },
+                            );
+                        };
+
+                        function fClear() {
+                            document.getElementById("polname").value = "";
+                            document.getElementById("scope").value = "User";
+                            document.getElementById("polpath").value = "";
+                            document.getElementById("regpath").value = "";
+                            document.getElementById("regvalue").value = "";
+                            document.getElementById("type").value = "SZ";
+                            document.getElementById("support").value = "";
+                            document.getElementById("description").value = "";
+                        };
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $('#showaddrule').on('click', function(e) {
+            e.preventDefault();
+            $('#meModal').modal('show').find('.modal-body').load($(this).attr('href'));
+        });
+    </script>
+
+</body>
+
+</html>
+
+{{end}}
